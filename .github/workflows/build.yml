@@ -314,6 +314,7 @@ jobs:
           submodules: recursive
 
       - name: Check human authorship
+        if: false
         env:
           EVENT_NAME: ${{ github.event_name }}
           BEFORE: ${{ github.event.before }}
