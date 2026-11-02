@@ -46,6 +46,7 @@ object ControllerPrefs {
         val steamButton: Boolean,
         val qamButton: Boolean,
         val keyboardButton: Boolean,
+        val controllerShortcuts: Boolean,
         val selectSteam: Boolean,
         val joyConVr: Boolean,
         val snap: Boolean,
@@ -67,6 +68,7 @@ object ControllerPrefs {
             steamButton = p.getBoolean("steamButton", true),
             qamButton = p.getBoolean("qamButton", true),
             keyboardButton = p.getBoolean("keyboardButton", true),
+            controllerShortcuts = controllerShortcuts(context),
             selectSteam = p.getBoolean("selectSteam", false),
             joyConVr = joyConVr(context),
             snap = p.getBoolean("snap", true),
@@ -123,6 +125,12 @@ object ControllerPrefs {
 
     fun setKeyboardButton(context: Context, on: Boolean) {
         prefs(context).edit().putBoolean("keyboardButton", on).apply()
+    }
+
+    fun controllerShortcuts(context: Context): Boolean = prefs(context).getBoolean("controllerShortcuts", false)
+
+    fun setControllerShortcuts(context: Context, on: Boolean) {
+        prefs(context).edit().putBoolean("controllerShortcuts", on).apply()
     }
 
     fun setSelectSteam(context: Context, on: Boolean) {

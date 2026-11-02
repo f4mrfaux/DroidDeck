@@ -354,6 +354,56 @@ class OnScreenControlsTest {
         assertFalse(touch(MotionEvent.ACTION_DOWN, 1 to (90f to 766f)))
     }
 
+    @Test fun shortcutsOnlyHidesThePadAndKeepsMenuAndKeyboard() {
+        var menus = 0
+        var keyboards = 0
+        view = OnScreenControls(context, null, onKeyboard = { keyboards++ }, onMenu = { menus++ })
+        view.layout(0, 0, 1200, 800)
+        val a = control("a")
+        val ax = value(a, "cx")
+        val ay = value(a, "cy")
+        assertNotEquals(0, pixel(ax, ay))
+        view.setShortcutsOnly(true)
+        assertEquals(0, pixel(ax, ay))
+        assertFalse(view.takesTouchAt(ax, ay))
+        assertFalse(touch(MotionEvent.ACTION_DOWN, 1 to (ax to ay)))
+        assertEquals(-1, field(a, "pressedBy"))
+        assertFalse(touch(MotionEvent.ACTION_DOWN, 1 to (600f to 400f)))
+        assertNotEquals(0, pixel(34f, 766f))
+        touch(MotionEvent.ACTION_DOWN, 1 to (34f to 766f))
+        touch(MotionEvent.ACTION_UP, 1 to (34f to 766f))
+        assertEquals(1, menus)
+        assertEquals(false, field(view, "quickHidden"))
+        touch(MotionEvent.ACTION_DOWN, 1 to (90f to 766f))
+        touch(MotionEvent.ACTION_UP, 1 to (90f to 766f))
+        assertEquals(1, keyboards)
+    }
+
+    @Test fun leavingShortcutsOnlyRestoresThePadAndQuickToggle() {
+        var menus = 0
+        view = OnScreenControls(context, null, onMenu = { menus++ })
+        view.layout(0, 0, 1200, 800)
+        val a = control("a")
+        val ax = value(a, "cx")
+        val ay = value(a, "cy")
+        touch(MotionEvent.ACTION_DOWN, 1 to (ax to ay))
+        view.setShortcutsOnly(true)
+        assertEquals(-1, field(a, "pressedBy"))
+        view.setShortcutsOnly(false)
+        assertNotEquals(0, pixel(ax, ay))
+        assertTrue(view.takesTouchAt(ax, ay))
+        touch(MotionEvent.ACTION_DOWN, 2 to (34f to 766f))
+        touch(MotionEvent.ACTION_UP, 2 to (34f to 766f))
+        assertEquals(0, menus)
+        assertEquals(true, field(view, "quickHidden"))
+    }
+
+    @Test fun controllerShortcutsAreOffUntilEnabled() {
+        assertFalse(ControllerPrefs.read(context).controllerShortcuts)
+        ControllerPrefs.setControllerShortcuts(context, true)
+        assertTrue(ControllerPrefs.read(context).controllerShortcuts)
+    }
+
     @Test fun hidingSystemButtonsRemovesHitTargetsInBothOverlayModes() {
         for (buttonsOnly in listOf(false, true)) {
             ControllerPrefs.setSteamButton(context, true)

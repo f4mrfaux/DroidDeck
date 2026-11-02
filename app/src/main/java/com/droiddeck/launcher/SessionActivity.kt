@@ -658,7 +658,7 @@ class SessionActivity : ComponentActivity(), SurfaceHolder.Callback {
             uiHandler.removeCallbacks(cursorHide)
             cursorVisible = false
         }
-        onScreenControls = OnScreenControls(this, bridge, onKeyboard = ::togglePcKeyboard).also { controls ->
+        onScreenControls = OnScreenControls(this, bridge, onKeyboard = ::togglePcKeyboard, onMenu = { drawerOpen = true }).also { controls ->
             controls.onTouchMiss = miss@{ event ->
                 if (!gestureTouchStreamGate.accepts(GestureTouchStreamGate.Source.ON_SCREEN_CONTROLS, event)) return@miss
                 event.offsetLocation(controls.left - surfaceView.left.toFloat(), controls.top - surfaceView.top.toFloat())
@@ -1248,6 +1248,10 @@ class SessionActivity : ComponentActivity(), SurfaceHolder.Callback {
             onSteamButton = { on -> updateControllerPrefs { ControllerPrefs.setSteamButton(this@SessionActivity, on) } },
             onQamButton = { on -> updateControllerPrefs { ControllerPrefs.setQamButton(this@SessionActivity, on) } },
             onKeyboardButton = { on -> updateControllerPrefs { ControllerPrefs.setKeyboardButton(this@SessionActivity, on) } },
+            onControllerShortcuts = { on ->
+                updateControllerPrefs { ControllerPrefs.setControllerShortcuts(this@SessionActivity, on) }
+                updateOnScreenControls()
+            },
             onSteamMenu = if (SessionState.mode == SessionService.MODE_STEAM) ({ sendSteamGuide() }) else null,
             onQam = if (SessionState.mode == SessionService.MODE_STEAM) ({ triggerSteamQam() }) else null,
             onAchievements = achievementsInFront?.let { { drawerOpen = false; achievementsOpen = true } },
@@ -3722,8 +3726,11 @@ class SessionActivity : ComponentActivity(), SurfaceHolder.Callback {
             ?.let { FileUtils.readString(it)?.trim()?.lowercase() }
             ?: SessionPrefs.oscMode(this)
         val controls = onScreenControls ?: return
+        val shortcuts = forced == SessionPrefs.OSC_AUTO && SessionState.mode != SessionService.MODE_DESKTOP &&
+            (PadBridge.anyControllerConnected() || SteamControllerBle.connected) &&
+            ControllerPrefs.controllerShortcuts(this)
         if (pipUi || unfoldedPanel != null || pcKeyboardOpen ||
-            (SessionState.mode == SessionService.MODE_STEAM && !SessionPrefs.builtinPad(this))) {
+            (SessionState.mode == SessionService.MODE_STEAM && !SessionPrefs.builtinPad(this) && !shortcuts)) {
             onScreenButtonsVisible = false
             controls.releaseAll()
             controls.visibility = View.GONE
@@ -3755,8 +3762,9 @@ class SessionActivity : ComponentActivity(), SurfaceHolder.Callback {
             else -> !PadBridge.anyControllerConnected() && !SteamControllerBle.connected &&
                 SessionState.mode != SessionService.MODE_DESKTOP
         }
+        controls.setShortcutsOnly(shortcuts)
         onScreenButtonsVisible = show
-        val drawn = show && !keyboardCoversPad()
+        val drawn = (show || shortcuts) && !keyboardCoversPad()
         if (steam != null) {
             screenKeys?.followSteam = drawn
             if (controls.visibility == View.VISIBLE) { controls.releaseAll(); controls.visibility = View.GONE }
@@ -3773,6 +3781,7 @@ class SessionActivity : ComponentActivity(), SurfaceHolder.Callback {
         controls.visibility = if (drawn) View.VISIBLE else View.GONE
         Log.i(TAG, "on-screen controls " + when {
             !drawn -> "hidden"
+            shortcuts -> "menu + keyboard"
             buttonsOnly -> "Steam + QAM"
             else -> "full pad"
         })

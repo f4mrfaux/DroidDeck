@@ -1169,6 +1169,8 @@
     <string name="ctrl_steam_button">Steam button</string>
     <string name="ctrl_qam_button">QAM button</string>
     <string name="ctrl_keyboard_button">Keyboard button</string>
+    <string name="ctrl_controller_shortcuts">Menu and keyboard buttons with a controller</string>
+    <string name="ctrl_controller_shortcuts_hint">When Auto hides the on-screen controls for a controller, keep these two on screen</string>
     <string name="ctrl_select_steam">Press Select to open the Steam menu</string>
     <string name="ctrl_select_steam_hint">Instead of View/Select.</string>
     <string name="ctrl_joycon_vr">Joy-Cons as VR controllers</string>

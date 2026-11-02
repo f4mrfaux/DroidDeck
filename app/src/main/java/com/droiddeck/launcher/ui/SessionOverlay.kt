@@ -269,6 +269,7 @@ class DrawerActions(
     val onSteamButton: (Boolean) -> Unit = {},
     val onQamButton: (Boolean) -> Unit = {},
     val onKeyboardButton: (Boolean) -> Unit = {},
+    val onControllerShortcuts: (Boolean) -> Unit = {},
     val onSuspendPolicy: (String) -> Unit,
     val onSteamDownloadsInBackground: (Boolean) -> Unit = {},
     val onBackActionsInverted: (Boolean) -> Unit,
@@ -634,6 +635,9 @@ internal fun SessionDrawer(open: Boolean, requestedPage: SessionDrawerPage, cont
                                 a.controller?.let { c ->
                                     ToggleRow(host, "rumble", stringResource(R.string.ctrl_rumble), null, c.rumble,
                                         chipModifier = focus.track(page, "rumble"), onChange = a.onRumble)
+                                    ToggleRow(host, "controller-shortcuts", stringResource(R.string.ctrl_controller_shortcuts),
+                                        stringResource(R.string.ctrl_controller_shortcuts_hint), c.controllerShortcuts,
+                                        chipModifier = focus.track(page, "controller-shortcuts"), onChange = a.onControllerShortcuts)
                                     if (a.onScreenButtonsVisible) {
                                         if (a.steam) {
                                             ToggleRow(host, "steam-button", stringResource(R.string.ctrl_steam_button), null, c.steamButton,
